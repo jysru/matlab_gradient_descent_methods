@@ -22,6 +22,8 @@ classdef Optimizer < handle
         default_algorithm = 'GradientDescent'
         current_algorithm
         plot_each_iter
+        add_variables_noise_each_iter
+        noise_std
     end
 
 
@@ -64,11 +66,16 @@ classdef Optimizer < handle
                 obj
                 opts.algorithm (1, :) char = 'GD'
                 opts.plot_each_iter (1, 1) logical = false
+                opts.add_variables_noise_each_iter (1, 1) logical = false
+                opts.noise_std (1, 1) double = 0.0
             end
 
             obj.current_algorithm = obj.AlgorithmSelection(name=opts.algorithm);
             disp(['Selected optimization algorithm: ' obj.current_algorithm]);
+
             obj.plot_each_iter = opts.plot_each_iter;
+            obj.add_variables_noise_each_iter = opts.add_variables_noise_each_iter;
+            obj.noise_std = opts.noise_std;
 
             obj.(obj.current_algorithm)();
         end
@@ -124,6 +131,11 @@ classdef Optimizer < handle
             obj.history = StreamOptim.Optims.History(obj.current_algorithm, x, obj.func(obj.x0));
             
             for iter = 1:obj.maxIter
+                % Add variables noise if option has been selected
+                if obj.add_variables_noise_each_iter
+                    x = x + obj.noise_std * randn(size(x));
+                end
+
                 % Compute the numerical gradient and run a step
                 [grad, fevals, fvals1, fvals2] = obj.grad_func(obj.func, x, obj.epsilon);
                 x_new = StreamOptim.Optims.Steps.GradientDescentStep(x, grad, alpha=obj.alpha);
@@ -167,6 +179,11 @@ classdef Optimizer < handle
             v = zeros(length(x), 1); % Squared gradient vector
             
             for iter = 1:obj.maxIter
+                % Add variables noise if option has been selected
+                if obj.add_variables_noise_each_iter
+                    x = x + obj.noise_std * randn(size(x));
+                end
+
                 % Compute the numerical gradient and run a step
                 [grad, fevals, fvals1, fvals2] = obj.grad_func(obj.func, x, obj.epsilon);
                 [x_new, v] = StreamOptim.Optims.Steps.MomentumStep(x, grad, v, alpha=obj.alpha, beta=obj.beta);
@@ -210,6 +227,11 @@ classdef Optimizer < handle
             v = zeros(length(x), 1); % Squared gradient vector
             
             for iter = 1:obj.maxIter
+                % Add variables noise if option has been selected
+                if obj.add_variables_noise_each_iter
+                    x = x + obj.noise_std * randn(size(x));
+                end
+
                 % Lookahead step
                 lookahead_x = x - obj.beta * v;
 
@@ -259,6 +281,11 @@ classdef Optimizer < handle
             v = zeros(length(x), 1); % Second moment vector
             
             for iter = 1:obj.maxIter
+                % Add variables noise if option has been selected
+                if obj.add_variables_noise_each_iter
+                    x = x + obj.noise_std * randn(size(x));
+                end
+
                 % Compute the numerical gradient
                 [grad, fevals, fvals1, fvals2] = obj.grad_func(obj.func, x, obj.epsilon);
         
@@ -305,6 +332,11 @@ classdef Optimizer < handle
             v = zeros(length(x), 1); % Second moment vector
             
             for iter = 1:obj.maxIter
+                % Add variables noise if option has been selected
+                if obj.add_variables_noise_each_iter
+                    x = x + obj.noise_std * randn(size(x));
+                end
+
                 % Compute the numerical gradient
                 [grad, fevals, fvals1, fvals2] = obj.grad_func(obj.func, x, obj.epsilon);
         
@@ -352,6 +384,11 @@ classdef Optimizer < handle
             rho_inf = 2 / (1 - obj.beta2) - 1; % rho_inf as defined in RAdam paper
             
             for iter = 1:obj.maxIter
+                % Add variables noise if option has been selected
+                if obj.add_variables_noise_each_iter
+                    x = x + obj.noise_std * randn(size(x));
+                end
+
                 % Compute the numerical gradient
                 [grad, fevals, fvals1, fvals2] = obj.grad_func(obj.func, x, obj.epsilon);
         
@@ -398,6 +435,11 @@ classdef Optimizer < handle
             u = zeros(length(x), 1); % Infinity norm of gradients
             
             for iter = 1:obj.maxIter
+                % Add variables noise if option has been selected
+                if obj.add_variables_noise_each_iter
+                    x = x + obj.noise_std * randn(size(x));
+                end
+
                 % Compute the numerical gradient
                 [grad, fevals, fvals1, fvals2] = obj.grad_func(obj.func, x, obj.epsilon);
         
@@ -444,6 +486,11 @@ classdef Optimizer < handle
             E_dx_sq = 1e-3 * ones(length(x), 1); % Initialize running average of squared parameter updates, not to 0 or it stagnates
             
             for iter = 1:obj.maxIter
+                % Add variables noise if option has been selected
+                if obj.add_variables_noise_each_iter
+                    x = x + obj.noise_std * randn(size(x));
+                end
+
                 % Compute the numerical gradient
                 [grad, fevals, fvals1, fvals2] = obj.grad_func(obj.func, x, obj.epsilon);
 
@@ -489,6 +536,11 @@ classdef Optimizer < handle
             sum_sq_grad = 1e-6 * ones(length(x), 1);
 
             for iter = 1:obj.maxIter
+                % Add variables noise if option has been selected
+                if obj.add_variables_noise_each_iter
+                    x = x + obj.noise_std * randn(size(x));
+                end
+
                 % Compute the numerical gradient
                 [grad, fevals, fvals1, fvals2] = obj.grad_func(obj.func, x, obj.epsilon);
 
@@ -534,6 +586,11 @@ classdef Optimizer < handle
             v = zeros(length(x), 1); % Squared gradient vector
             
             for iter = 1:obj.maxIter
+                % Add variables noise if option has been selected
+                if obj.add_variables_noise_each_iter
+                    x = x + obj.noise_std * randn(size(x));
+                end
+
                 % Compute the numerical gradient
                 [grad, fevals, fvals1, fvals2] = obj.grad_func(obj.func, x, obj.epsilon);
         
@@ -580,6 +637,11 @@ classdef Optimizer < handle
             u = zeros(length(x), 1); % Dual variable
             
             for iter = 1:obj.maxIter
+                % Add variables noise if option has been selected
+                if obj.add_variables_noise_each_iter
+                    x = x + obj.noise_std * randn(size(x));
+                end
+
                 % Compute the numerical gradient
                 [grad, fevals, fvals1, fvals2] = obj.grad_func(obj.func, x, obj.epsilon);
 
