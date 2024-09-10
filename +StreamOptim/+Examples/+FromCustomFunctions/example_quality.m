@@ -34,12 +34,14 @@ maxIter = 100;
 % Perturbation for numerical gradient
 epsilon = 1e-3;
 
-
 opt = StreamOptim.Optims.Optimizer(...
     fobj, phi, alpha, tol=tol, epsilon=epsilon, ...
     maxIter=maxIter, grad_func=@StreamOptim.Gradients.CentralFiniteDifferences, ...
     lb = [], ub = []);
 
 opt.Run(algorithm='ADMM', plot_each_iter=true);
-opt.PlotConvergence("YLim", [0 1], "YScale", 'log')
 
+%%
+opt.history.PlotConvergence("YLim", [0 1], "YScale", 'log')
+opt.history.PlotDiffs()
+opt.history.PlotGrads()
