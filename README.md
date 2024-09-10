@@ -2,7 +2,7 @@
 
 Naive implementation of Gradient Descent optimization methods in Matlab.
 
-- Requires Matlab >= R2019b
+- Requires Matlab >= R2021b
 - Tested with Matlab == R2022b
 
 
