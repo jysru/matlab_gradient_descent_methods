@@ -27,32 +27,32 @@ algorithm = 'ADMM';
 
 
 %% Setup the finite difference method and the optimizer parameters
-opt_cfd = StreamOptim.Optims.Optimizer(...
-    fobj, phi, alpha, tol=tol, epsilon=epsilon, ...
-    maxIter=maxIter, grad_func=@StreamOptim.Gradients.CentralFiniteDifferences, ...
-    lb = [], ub = []);
-
-opt_prscfd = StreamOptim.Optims.Optimizer(...
+opt = StreamOptim.Optims.Optimizer(...
     fobj, phi, alpha, tol=tol, epsilon=epsilon, ...
     maxIter=maxIter, grad_func=@StreamOptim.Gradients.ParallelRandomSignCentralFiniteDifferences, ...
     lb = [], ub = []);
 
 
-%% Run the optimization algorithms
-opt_cfd.Run(algorithm=algorithm, plot_each_iter=false, add_variables_noise_each_iter=true, noise_std=variables_noise_std);
-opt_prscfd.Run(algorithm=algorithm, plot_each_iter=false, add_variables_noise_each_iter=true, noise_std=variables_noise_std);
+%% Evaluate the noise
+opt.EvaluateNoise(perturb=0.1, max_iter=1000)
+opt.history.PlotNoiseAndSteps("FigureNumber", 4);
 
+
+%% Run the optimization algorithms
+opt.Run(algorithm=algorithm, plot_each_iter=false, add_variables_noise_each_iter=true, noise_std=variables_noise_std);
 
 %% Plot results
 figure(1); clf, hold on
-plot(opt_cfd.history.fvals, 'Marker', '.', 'MarkerSize', 10)
-plot(opt_prscfd.history.fvals, 'Marker', '.', 'MarkerSize', 10)
-title([opt_cfd.history.algorithm ' optimization: Convergence'])
+plot(opt.history.fvals, 'Marker', '.', 'MarkerSize', 10)
+title([opt.history.algorithm ' optimization: Convergence'])
 xlabel('Iteration #')
 ylabel('Cost function')
 grid on, box on
 ylim([0, 1])
 % set(gca, 'YScale', 'log')
 
+
+opt.history.PlotDiffs()
+opt.history.PlotGrads()
 
 
