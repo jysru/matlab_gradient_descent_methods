@@ -112,7 +112,7 @@ classdef Optimizer < handle
 
                 % Plot convergence
                 if opts.plot_each_iter
-                    obj.history.PlotNoiseAndSteps();
+                    obj.history.PlotNoiseWithPerturbs();
                 end
             end
 

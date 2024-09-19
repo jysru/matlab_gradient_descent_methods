@@ -27,6 +27,7 @@ classdef History < handle
         grads_plot_handle
 
         noise_figure_handle
+        steps_figure_handle
     end
 
     methods (Access = public)
@@ -102,7 +103,40 @@ classdef History < handle
             end
         end
 
-        function PlotNoiseAndSteps(obj, opts)
+        function PlotSteps(obj, opts)
+            arguments
+                obj
+                opts.FigureNumber (1, 1) double = 6
+                opts.Marker (1, :) char = 'none'
+                opts.MarkerSize (1, 1) double = 15
+                opts.LineStyle (1, :) char = '-'
+                opts.Color = 'r';
+                opts.YScale (1, :) char = 'lin'
+                opts.YLim = []
+                opts.Reset (1, 1) logical = false
+            end
+            
+            obj.noise_figure_handle = figure(opts.FigureNumber); clf; hold on; grid on; box on;
+            mean_steps = mean(obj.steps, 1);
+            std_steps = std(obj.steps, 0, 1);
+            xaxis = linspace(1, length(mean_steps));
+            max_steps = max(obj.steps, [], 1);
+            min_steps = min(obj.steps, [], 1);
+            
+            fill([xaxis, fliplr(xaxis)], [mean_steps + std_steps, fliplr(mean_steps - std_steps)], 'b', 'FaceAlpha', 0.3, 'EdgeColor', 'none');
+            plot(max_steps, 'Marker', opts.Marker, 'MarkerSize', opts.MarkerSize, 'LineStyle', opts.LineStyle, 'LineWidth', 1, 'Color', 'g');
+            plot(min_steps, 'Marker', opts.Marker, 'MarkerSize', opts.MarkerSize, 'LineStyle', opts.LineStyle, 'LineWidth', 1, 'Color', 'm');
+            plot(mean_steps, 'Marker', opts.Marker, 'MarkerSize', opts.MarkerSize, 'LineStyle', opts.LineStyle, 'LineWidth', 1.5, 'Color', opts.Color);
+
+            xlabel('Iteration #')
+            ylabel('Input steps')
+            title('Input steps evolution')
+            
+
+            legend('\mu \pm \sigma', 'max', 'min', '\mu')
+        end
+
+        function PlotNoiseWithPerturbs(obj, opts)
             arguments
                 obj
                 opts.FigureNumber (1, 1) double = 4
@@ -133,17 +167,16 @@ classdef History < handle
                 legend('w/o perturb', 'w/ perturb 1', 'w/ perturb 2')
 
             subplot(1, 2, 2); hold on; grid on; box on;
-                [f, xi] = ksdensity(obj.fvals);
+                [f, xi] = ksdensity(obj.fvals(:));
                 area(xi, f, FaceAlpha=0.4, LineWidth=1, EdgeColor="none")
-                [f, xi] = ksdensity(obj.fvals1);
+                [f, xi] = ksdensity(obj.fvals1(:));
                 area(xi, f, FaceAlpha=0.4, LineWidth=1, EdgeColor="none")
-                [f, xi] = ksdensity(obj.fvals2);
+                [f, xi] = ksdensity(obj.fvals2(:));
                 area(xi, f, FaceAlpha=0.4,  LineWidth=1, EdgeColor="none")
                 xlabel('Cost function value')
                 ylabel('Density')
                 title('Noisy cost function distributions')
                 legend('w/o perturb', 'w/ perturb 1', 'w/ perturb 2')
-
         end
 
         function PlotDiffs(obj, opts)
