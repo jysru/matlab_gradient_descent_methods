@@ -79,6 +79,46 @@ classdef Optimizer < handle
 
             obj.(obj.current_algorithm)();
         end
+
+        function EvaluateNoise(obj, opts)
+            arguments
+                obj
+                opts.perturb (1, 1) double = 1e-3
+                opts.max_iter (1, 1) double = 100
+                opts.plot_each_iter (1, 1) logical = false
+                opts.add_variables_noise_each_iter (1, 1) logical = false
+                opts.noise_std (1, 1) double = 0.0
+            end
+
+            % Initialize variables
+            x = obj.x0;
+            obj.history = StreamOptim.Optims.History(obj.current_algorithm, x, obj.func(obj.x0));
+            
+            for iter = 1:opts.max_iter
+                % Add variables noise if option has been selected
+                if opts.add_variables_noise_each_iter
+                    x = x + opts.noise_std * randn(size(x));
+                end
+
+                % Compute the numerical gradient and run a step
+                [grad, fevals, fvals1, fvals2] = obj.grad_func(obj.func, x, opts.perturb);                
+                
+                % Store the history (in thercase of GD the step is the gradient)
+                obj.history.Update( ...
+                    x=x, fvals=obj.func(x), ...
+                    fevals=fevals, grads=grad, ...
+                    fvals1=fvals1, fvals2=fvals2, ...
+                    alpha=obj.alpha);
+
+                % Plot convergence
+                if opts.plot_each_iter
+                    obj.history.PlotNoiseAndSteps();
+                end
+            end
+
+            % Output the number of iterations
+            fprintf('Noise evaluation ended after %d iterations.\n', iter);
+        end
     end
 
 
@@ -148,11 +188,12 @@ classdef Optimizer < handle
                 x = StreamOptim.Utils.constrainWithinRange(x, obj.lb, obj.ub);
                 obj.x_opt = x;
                 
-                % Store the history
+                % Store the history (in thercase of GD the step is the gradient)
                 obj.history.Update( ...
                     x=x, fvals=obj.func(obj.x_opt), ...
                     fevals=fevals, diffs=diff, grads=grad, ...
-                    fvals1=fvals1, fvals2=fvals2);
+                    fvals1=fvals1, fvals2=fvals2, ...
+                    alpha=obj.alpha, steps=grad);
 
                 % Plot convergence
                 if obj.plot_each_iter
@@ -196,11 +237,12 @@ classdef Optimizer < handle
                 x = StreamOptim.Utils.constrainWithinRange(x, obj.lb, obj.ub);
                 obj.x_opt = x;
                 
-                % Store the history
+                % Store the history (in the case of Momentum the step is v)
                 obj.history.Update( ...
                     x=x, fvals=obj.func(obj.x_opt), ...
                     fevals=fevals, diffs=diff, grads=grad, ...
-                    fvals1=fvals1, fvals2=fvals2);
+                    fvals1=fvals1, fvals2=fvals2, ...
+                    alpha=obj.alpha, steps=v);
 
                 % Plot convergence
                 if obj.plot_each_iter
@@ -249,11 +291,12 @@ classdef Optimizer < handle
                 x = StreamOptim.Utils.constrainWithinRange(x, obj.lb, obj.ub);
                 obj.x_opt = x;
                 
-                % Store the history
+                % Store the history (in the case of NAG the step is v)
                 obj.history.Update( ...
                     x=x, fvals=obj.func(obj.x_opt), ...
                     fevals=fevals, diffs=diff, grads=grad, ...
-                    fvals1=fvals1, fvals2=fvals2);
+                    fvals1=fvals1, fvals2=fvals2, ...
+                    alpha=obj.alpha, steps=v);
 
                 % Plot convergence
                 if obj.plot_each_iter
@@ -290,7 +333,7 @@ classdef Optimizer < handle
                 [grad, fevals, fvals1, fvals2] = obj.grad_func(obj.func, x, obj.epsilon);
         
                 % Update the variables using the gradient descent step
-                [x_new, m, v] = StreamOptim.Optims.Steps.AdamStep(x, grad, m, v, iter, alpha=obj.alpha, beta1=obj.beta1, beta2=obj.beta2);
+                [x_new, m, v, step] = StreamOptim.Optims.Steps.AdamStep(x, grad, m, v, iter, alpha=obj.alpha, beta1=obj.beta1, beta2=obj.beta2);
                 
                 % Compute the change in the variables
                 diff = norm(x_new - x);
@@ -304,7 +347,8 @@ classdef Optimizer < handle
                 obj.history.Update( ...
                     x=x, fvals=obj.func(obj.x_opt), ...
                     fevals=fevals, diffs=diff, grads=grad, ...
-                    fvals1=fvals1, fvals2=fvals2);
+                    fvals1=fvals1, fvals2=fvals2, ...
+                    alpha=obj.alpha, steps=step);
 
                 % Plot convergence
                 if obj.plot_each_iter
@@ -341,7 +385,7 @@ classdef Optimizer < handle
                 [grad, fevals, fvals1, fvals2] = obj.grad_func(obj.func, x, obj.epsilon);
         
                 % Update the variables using the gradient descent step
-                [x_new, m, v] = StreamOptim.Optims.Steps.NAdamStep(x, grad, m, v, iter, alpha=obj.alpha, beta1=obj.beta1, beta2=obj.beta2);
+                [x_new, m, v, step] = StreamOptim.Optims.Steps.NAdamStep(x, grad, m, v, iter, alpha=obj.alpha, beta1=obj.beta1, beta2=obj.beta2);
                 
                 % Compute the change in the variables
                 diff = norm(x_new - x);
@@ -355,7 +399,8 @@ classdef Optimizer < handle
                 obj.history.Update( ...
                     x=x, fvals=obj.func(obj.x_opt), ...
                     fevals=fevals, diffs=diff, grads=grad, ...
-                    fvals1=fvals1, fvals2=fvals2);
+                    fvals1=fvals1, fvals2=fvals2, ...
+                    alpha=obj.alpha, steps=step);
 
                 % Plot convergence
                 if obj.plot_each_iter
@@ -393,7 +438,7 @@ classdef Optimizer < handle
                 [grad, fevals, fvals1, fvals2] = obj.grad_func(obj.func, x, obj.epsilon);
         
                 % Update the variables using the gradient descent step
-                [x_new, m, v, rho_inf] = StreamOptim.Optims.Steps.RAdamStep(x, grad, m, v, rho_inf, iter, alpha=obj.alpha, beta1=obj.beta1, beta2=obj.beta2);
+                [x_new, m, v, rho_inf, lr, step] = StreamOptim.Optims.Steps.RAdamStep(x, grad, m, v, rho_inf, iter, alpha=obj.alpha, beta1=obj.beta1, beta2=obj.beta2);
                 
                 % Compute the change in the variables
                 diff = norm(x_new - x);
@@ -407,7 +452,8 @@ classdef Optimizer < handle
                 obj.history.Update( ...
                     x=x, fvals=obj.func(obj.x_opt), ...
                     fevals=fevals, diffs=diff, grads=grad, ...
-                    fvals1=fvals1, fvals2=fvals2);
+                    fvals1=fvals1, fvals2=fvals2, ...
+                    alpha=obj.alpha, steps=step);
 
                 % Plot convergence
                 if obj.plot_each_iter
@@ -444,7 +490,7 @@ classdef Optimizer < handle
                 [grad, fevals, fvals1, fvals2] = obj.grad_func(obj.func, x, obj.epsilon);
         
                 % Update the variables using the gradient descent step
-                [x_new, m, u] = StreamOptim.Optims.Steps.AdamaxStep(x, grad, m, u, iter, alpha=obj.alpha, beta1=obj.beta1, beta2=obj.beta2);
+                [x_new, m, u, step] = StreamOptim.Optims.Steps.AdamaxStep(x, grad, m, u, iter, alpha=obj.alpha, beta1=obj.beta1, beta2=obj.beta2);
                 
                 % Compute the change in the variables
                 diff = norm(x_new - x);
@@ -458,7 +504,8 @@ classdef Optimizer < handle
                 obj.history.Update( ...
                     x=x, fvals=obj.func(obj.x_opt), ...
                     fevals=fevals, diffs=diff, grads=grad, ...
-                    fvals1=fvals1, fvals2=fvals2);
+                    fvals1=fvals1, fvals2=fvals2, ...
+                    alpha=obj.alpha, steps=step);
 
                 % Plot convergence
                 if obj.plot_each_iter
@@ -495,7 +542,7 @@ classdef Optimizer < handle
                 [grad, fevals, fvals1, fvals2] = obj.grad_func(obj.func, x, obj.epsilon);
 
                 % Update the variables using the gradient descent step
-                [x_new, E_grad_sq, E_dx_sq] = StreamOptim.Optims.Steps.AdadeltaStep(x, grad, E_grad_sq, E_dx_sq, beta=obj.beta);
+                [x_new, E_grad_sq, E_dx_sq, step] = StreamOptim.Optims.Steps.AdadeltaStep(x, grad, E_grad_sq, E_dx_sq, beta=obj.beta);
 
                 % Compute the change in the variables
                 diff = norm(x_new - x);
@@ -509,7 +556,8 @@ classdef Optimizer < handle
                 obj.history.Update( ...
                     x=x, fvals=obj.func(obj.x_opt), ...
                     fevals=fevals, diffs=diff, grads=grad, ...
-                    fvals1=fvals1, fvals2=fvals2);
+                    fvals1=fvals1, fvals2=fvals2, ...
+                    alpha=obj.alpha, steps=step);
 
                 % Plot convergence
                 if obj.plot_each_iter
@@ -545,7 +593,7 @@ classdef Optimizer < handle
                 [grad, fevals, fvals1, fvals2] = obj.grad_func(obj.func, x, obj.epsilon);
 
                 % Update the variables using the gradient descent step
-                [x_new, sum_sq_grad] = StreamOptim.Optims.Steps.AdagradStep(x, grad, sum_sq_grad, alpha=obj.alpha);
+                [x_new, sum_sq_grad, step] = StreamOptim.Optims.Steps.AdagradStep(x, grad, sum_sq_grad, alpha=obj.alpha);
 
                 % Compute the change in the variables
                 diff = norm(x_new - x);
@@ -559,7 +607,8 @@ classdef Optimizer < handle
                 obj.history.Update( ...
                     x=x, fvals=obj.func(obj.x_opt), ...
                     fevals=fevals, diffs=diff, grads=grad, ...
-                    fvals1=fvals1, fvals2=fvals2);
+                    fvals1=fvals1, fvals2=fvals2, ...
+                    alpha=obj.alpha, steps=step);
 
                 % Plot convergence
                 if obj.plot_each_iter
@@ -595,7 +644,7 @@ classdef Optimizer < handle
                 [grad, fevals, fvals1, fvals2] = obj.grad_func(obj.func, x, obj.epsilon);
         
                 % Update the variables using the gradient descent step
-                [x_new, v] = StreamOptim.Optims.Steps.RMSPropStep(x, grad, v, alpha=obj.alpha, beta=obj.beta);
+                [x_new, v, step] = StreamOptim.Optims.Steps.RMSPropStep(x, grad, v, alpha=obj.alpha, beta=obj.beta);
                 
                 % Compute the change in the variables
                 diff = norm(x_new - x);
@@ -609,7 +658,8 @@ classdef Optimizer < handle
                 obj.history.Update( ...
                     x=x, fvals=obj.func(obj.x_opt), ...
                     fevals=fevals, diffs=diff, grads=grad, ...
-                    fvals1=fvals1, fvals2=fvals2);
+                    fvals1=fvals1, fvals2=fvals2, ...
+                    alpha=obj.alpha, steps=step);
 
                 % Plot convergence
                 if obj.plot_each_iter
@@ -646,7 +696,7 @@ classdef Optimizer < handle
                 [grad, fevals, fvals1, fvals2] = obj.grad_func(obj.func, x, obj.epsilon);
 
                 % Update the variables using the ADMM step
-                [x_new, z, u] = StreamOptim.Optims.Steps.ADMMStep(x, grad, z, u, alpha=obj.alpha, rho=obj.rho);
+                [x_new, z, u, step] = StreamOptim.Optims.Steps.ADMMStep(x, grad, z, u, alpha=obj.alpha, rho=obj.rho);
         
                 % Compute the change in the variables
                 diff = norm(x_new - x);
@@ -669,7 +719,8 @@ classdef Optimizer < handle
                 obj.history.Update( ...
                     x=x, fvals=obj.func(obj.x_opt), ...
                     fevals=fevals, diffs=diff, grads=grad, ...
-                    fvals1=fvals1, fvals2=fvals2);
+                    fvals1=fvals1, fvals2=fvals2, ...
+                    alpha=obj.alpha, steps=step);
 
                 % Plot convergence
                 if obj.plot_each_iter
