@@ -9,8 +9,9 @@ import StreamOptim.*
 n = 10;
 variables_noise_std = 0.0;
 cost_function_noise_std = 0.01 * 1;
-phi = 2 * pi * rand(n, 1);
 phit = 2 * pi * rand(n, 1);
+phi = 2 * pi * rand(n, 1);
+phi = phit + 2 * rand(n, 1);
 
 x = ones(n, 1) .* exp(1j * phi);
 xt = ones(n, 1) .* exp(1j * phit);
@@ -35,7 +36,7 @@ opt = StreamOptim.Optims.Optimizer(...
 
 %% Evaluate the noise
 opt.EvaluateNoise(perturb=0.1, max_iter=1000)
-opt.history.PlotNoiseAndSteps("FigureNumber", 4);
+opt.history.PlotNoiseAndSteps();
 
 
 %% Run the optimization algorithms

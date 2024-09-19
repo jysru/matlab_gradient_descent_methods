@@ -25,6 +25,8 @@ classdef History < handle
         grads_figure_handle
         grads_axes_handle
         grads_plot_handle
+
+        noise_figure_handle
     end
 
     methods (Access = public)
@@ -103,7 +105,7 @@ classdef History < handle
         function PlotNoiseAndSteps(obj, opts)
             arguments
                 obj
-                opts.FigureNumber (1, 1) double = 1
+                opts.FigureNumber (1, 1) double = 4
                 opts.Marker (1, :) char = 'none'
                 opts.MarkerSize (1, 1) double = 15
                 opts.LineStyle (1, :) char = '-'
@@ -113,19 +115,35 @@ classdef History < handle
                 opts.Reset (1, 1) logical = false
             end
 
-            obj.fvals_figure_handle = figure(opts.FigureNumber); clf; hold on;
-            obj.fvals_axes_handle = gca();
-            obj.fvals_plot_handle = plot(obj.fvals, 'Marker', opts.Marker, 'MarkerSize', opts.MarkerSize, 'LineStyle', opts.LineStyle, 'LineWidth', 1.5);
-            plot(obj.fvals1, 'Marker', '.', 'MarkerSize', opts.MarkerSize, 'LineStyle', 'none');
-            plot(obj.fvals2, 'Marker', '.', 'MarkerSize', opts.MarkerSize, 'LineStyle', 'none');
-            title('Noise evaluation')
-            xlabel('Iteration #')
-            ylabel('Cost function')
-            grid on, box on
-            if ~isempty(opts.YLim)
-                ylim(opts.YLim)
-            end
-            set(gca, 'YScale', opts.YScale)
+            obj.noise_figure_handle = figure(opts.FigureNumber); clf;
+            obj.noise_figure_handle.Position(3) = 1000;
+            
+            subplot(1, 2, 1); hold on; grid on; box on;
+                plot(obj.fvals, 'Marker', opts.Marker, 'MarkerSize', opts.MarkerSize, 'LineStyle', opts.LineStyle, 'LineWidth', 1.5);
+                plot(obj.fvals1, 'Marker', '.', 'MarkerSize', opts.MarkerSize, 'LineStyle', 'none');
+                plot(obj.fvals2, 'Marker', '.', 'MarkerSize', opts.MarkerSize, 'LineStyle', 'none');
+                title('Noise evaluation')
+                xlabel('Iteration #')
+                ylabel('Cost function')
+                if ~isempty(opts.YLim)
+                    ylim(opts.YLim)
+                end
+                xlim([0, length(obj.fvals)])
+                set(gca, 'YScale', opts.YScale)
+                legend('w/o perturb', 'w/ perturb 1', 'w/ perturb 2')
+
+            subplot(1, 2, 2); hold on; grid on; box on;
+                [f, xi] = ksdensity(obj.fvals);
+                area(xi, f, FaceAlpha=0.4, LineWidth=1, EdgeColor="none")
+                [f, xi] = ksdensity(obj.fvals1);
+                area(xi, f, FaceAlpha=0.4, LineWidth=1, EdgeColor="none")
+                [f, xi] = ksdensity(obj.fvals2);
+                area(xi, f, FaceAlpha=0.4,  LineWidth=1, EdgeColor="none")
+                xlabel('Cost function value')
+                ylabel('Density')
+                title('Noisy cost function distributions')
+                legend('w/o perturb', 'w/ perturb 1', 'w/ perturb 2')
+
         end
 
         function PlotDiffs(obj, opts)
