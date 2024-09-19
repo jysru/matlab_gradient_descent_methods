@@ -1,4 +1,4 @@
-function [x_new, m, v] = NAdamStep(x, grad, m, v, iter, opts)
+function [x_new, m, v, step] = NAdamStep(x, grad, m, v, iter, opts)
     % NAdam step
     % 
     % Inputs:
@@ -39,7 +39,10 @@ function [x_new, m, v] = NAdamStep(x, grad, m, v, iter, opts)
     
     % Compute bias-corrected second raw moment estimate
     v_hat = v / (1 - opts.beta2 ^ (iter + 1));
+
+    % Compute the step to be applied
+    step = m_hat ./ (sqrt(v_hat) + opts.epsilon);
     
     % Update phi using Adam rule
-    x_new = x - opts.alpha * (m_hat ./ (sqrt(v_hat) + opts.epsilon));
+    x_new = x - opts.alpha * step;
 end

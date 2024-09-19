@@ -1,4 +1,4 @@
-function [x_new, sum_sq_grad] = AdagradStep(x, grad, sum_sq_grad, opts)
+function [x_new, sum_sq_grad, step] = AdagradStep(x, grad, sum_sq_grad, opts)
     % Adagrad step
     % 
     % Inputs:
@@ -22,6 +22,9 @@ function [x_new, sum_sq_grad] = AdagradStep(x, grad, sum_sq_grad, opts)
     % Update sum of squared gradients
     sum_sq_grad = sum_sq_grad + grad.^2;
 
+    % Compute the step to be applied
+    step = grad ./ (sqrt(sum_sq_grad) + opts.epsilon);
+
     % Update x using Adagrad rule
-    x_new = x - opts.alpha * grad ./ (sqrt(sum_sq_grad) + opts.epsilon);
+    x_new = x - opts.alpha * step;
 end

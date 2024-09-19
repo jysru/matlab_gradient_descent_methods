@@ -1,4 +1,4 @@
-function [x_new, z, u] = ADMMStep(x, grad, z, u, opts)
+function [x_new, z, u, step] = ADMMStep(x, grad, z, u, opts)
     % ADMM step
     % 
     % Inputs:
@@ -26,6 +26,9 @@ function [x_new, z, u] = ADMMStep(x, grad, z, u, opts)
     % Using a gradient descent step for simplicity
     grad = grad + opts.rho * (x - z + u);
 
+    % Compute the step to be applied
+    step = grad / (opts.rho + 1);
+
     % Update step with learning rate adjusted by rh
-    x_new = x - grad / (opts.rho + 1); 
+    x_new = x - step; 
 end

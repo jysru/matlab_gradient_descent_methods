@@ -1,4 +1,4 @@
-function [x_new, m, v, rho_inf] = RAdamStep(x, grad, m, v, rho_inf, iter, opts)
+function [x_new, m, v, rho_inf, lr, step] = RAdamStep(x, grad, m, v, rho_inf, iter, opts)
     % RAdam (Rectified Adam) step
     % 
     % Inputs:
@@ -47,6 +47,10 @@ function [x_new, m, v, rho_inf] = RAdamStep(x, grad, m, v, rho_inf, iter, opts)
     else
         adaptive_lr = opts.alpha;
     end
+
+    % Store the step and the adapted lr
+    lr = adaptive_lr;
+    step = m_hat;
 
     % Update phi using RAdam rule
     x_new = x - adaptive_lr .* m_hat;

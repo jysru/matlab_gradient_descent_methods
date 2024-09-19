@@ -1,4 +1,4 @@
-function [x_new, E_grad_sq, E_dx_sq] = AdadeltaStep(x, grad, E_grad_sq, E_dx_sq, opts)
+function [x_new, E_grad_sq, E_dx_sq, step] = AdadeltaStep(x, grad, E_grad_sq, E_dx_sq, opts)
     % Adadelta step
     % 
     % Inputs:
@@ -27,6 +27,9 @@ function [x_new, E_grad_sq, E_dx_sq] = AdadeltaStep(x, grad, E_grad_sq, E_dx_sq,
     RMS_dx = sqrt(E_dx_sq + opts.epsilon);
     RMS_grad = sqrt(E_grad_sq + opts.epsilon);
     delta_x = -(RMS_dx ./ RMS_grad) .* grad;
+
+    % Store the step
+    step = delta_x;
 
     % Update x using Adadelta rule
     x_new = x + delta_x;

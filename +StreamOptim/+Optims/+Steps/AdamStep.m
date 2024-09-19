@@ -1,4 +1,4 @@
-function [x_new, m, v] = AdamStep(x, grad, m, v, iter, opts)
+function [x_new, m, v, step] = AdamStep(x, grad, m, v, iter, opts)
     % Adam step
     % 
     % Inputs:
@@ -36,7 +36,10 @@ function [x_new, m, v] = AdamStep(x, grad, m, v, iter, opts)
     
     % Compute bias-corrected second raw moment estimate
     v_hat = v / (1 - opts.beta2 ^ iter);
+
+    % Compute the step to be applied
+    step = m_hat ./ (sqrt(v_hat) + opts.epsilon);
     
     % Update phi using Adam rule
-    x_new = x - opts.alpha * (m_hat ./ (sqrt(v_hat) + opts.epsilon));
+    x_new = x - opts.alpha * step;
 end

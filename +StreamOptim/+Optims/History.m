@@ -8,6 +8,8 @@ classdef History < handle
         fvals
         fevals
         diffs
+        steps
+        alpha
         grads
         fvals1
         fvals2
@@ -36,6 +38,8 @@ classdef History < handle
             obj.x = x;
             obj.fvals = fvals;
             obj.fevals = 0;
+            obj.alpha = [];
+            obj.steps = [];
             obj.diffs = [];
             obj.grads = [];
             obj.fvals1 = [];
@@ -48,7 +52,9 @@ classdef History < handle
                 opts.x (:, 1) double = []
                 opts.fvals (:, 1) double = []
                 opts.fevals (1, 1) double = []
+                opts.alpha (1, 1) double = []
                 opts.diffs (:, 1) double = []
+                opts.steps (:, 1) double = []
                 opts.grads (:, 1) double = []
                 opts.fvals1 (:, 1) double = []
                 opts.fvals2 (:, 1) double = []
@@ -56,7 +62,9 @@ classdef History < handle
             obj.x = [obj.x, opts.x];
             obj.fvals = [obj.fvals, opts.fvals];
             obj.fevals = obj.fevals + opts.fevals;
+            obj.alpha = [obj.alpha, opts.alpha];
             obj.diffs = [obj.diffs, opts.diffs];
+            obj.steps = [obj.steps, opts.steps];
             obj.grads = [obj.grads, opts.grads];
             obj.fvals1 = [obj.fvals1, opts.fvals1];
             obj.fvals2 = [obj.fvals2, opts.fvals2];
@@ -90,6 +98,34 @@ classdef History < handle
                     ylim(opts.YLim)
                 end
             end
+        end
+
+        function PlotNoiseAndSteps(obj, opts)
+            arguments
+                obj
+                opts.FigureNumber (1, 1) double = 1
+                opts.Marker (1, :) char = 'none'
+                opts.MarkerSize (1, 1) double = 15
+                opts.LineStyle (1, :) char = '-'
+                opts.Color = 'b';
+                opts.YScale (1, :) char = 'lin'
+                opts.YLim = []
+                opts.Reset (1, 1) logical = false
+            end
+
+            obj.fvals_figure_handle = figure(opts.FigureNumber); clf; hold on;
+            obj.fvals_axes_handle = gca();
+            obj.fvals_plot_handle = plot(obj.fvals, 'Marker', opts.Marker, 'MarkerSize', opts.MarkerSize, 'LineStyle', opts.LineStyle, 'LineWidth', 1.5);
+            plot(obj.fvals1, 'Marker', '.', 'MarkerSize', opts.MarkerSize, 'LineStyle', 'none');
+            plot(obj.fvals2, 'Marker', '.', 'MarkerSize', opts.MarkerSize, 'LineStyle', 'none');
+            title('Noise evaluation')
+            xlabel('Iteration #')
+            ylabel('Cost function')
+            grid on, box on
+            if ~isempty(opts.YLim)
+                ylim(opts.YLim)
+            end
+            set(gca, 'YScale', opts.YScale)
         end
 
         function PlotDiffs(obj, opts)

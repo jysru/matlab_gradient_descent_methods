@@ -1,4 +1,4 @@
-function [x_new, v] = RMSPropStep(x, grad, v, opts)
+function [x_new, v, step] = RMSPropStep(x, grad, v, opts)
     % RMSProp step
     % 
     % Inputs:
@@ -22,7 +22,10 @@ function [x_new, v] = RMSPropStep(x, grad, v, opts)
 
     % Update the moving average of squared gradients
     v = opts.beta * v + (1 - opts.beta) * (grad .^ 2);
+
+    % Compute the step to be applied
+    step = grad ./ (sqrt(v) + opts.epsilon);
     
     % Update x using RMSprop rule
-    x_new = x - opts.alpha * (grad ./ (sqrt(v) + opts.epsilon));
+    x_new = x - opts.alpha * step;
 end

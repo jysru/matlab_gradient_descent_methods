@@ -1,4 +1,4 @@
-function [x_new, m, u] = AdamaxStep(x, grad, m, u, iter, opts)
+function [x_new, m, u, step] = AdamaxStep(x, grad, m, u, iter, opts)
     % Adamax step
     % 
     % Inputs:
@@ -33,7 +33,10 @@ function [x_new, m, u] = AdamaxStep(x, grad, m, u, iter, opts)
     
     % Compute bias-corrected first moment estimate
     m_hat = m / (1 - opts.beta1 ^ iter);
+
+    % Compute the step to be applied
+    step = m_hat ./ (u + opts.epsilon);
     
     % Update x using Adamax rule
-    x_new = x - opts.alpha * (m_hat ./ (u + opts.epsilon));
+    x_new = x - opts.alpha * step;
 end
