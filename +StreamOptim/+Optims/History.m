@@ -73,6 +73,19 @@ classdef History < handle
             obj.fvals2 = [obj.fvals2, opts.fvals2];
         end
 
+        function best = GetBest(obj)
+            [~, idx] = min(obj.fvals);
+            best.algorithm = obj.algorithm;
+            best.x = obj.x(:, idx);
+            best.fvals = obj.fvals(:, idx);
+            best.diffs = obj.diffs(:, idx-1);
+            best.steps = obj.steps(:, idx-1);
+            best.alpha = obj.alpha(:, idx-1);
+            best.grads = obj.grads(:, idx-1);
+            best.fvals1 = obj.fvals1(:, idx-1);
+            best.fvals2 = obj.fvals2(:, idx-1);
+        end
+
         function PlotConvergence(obj, opts)
             arguments
                 obj
