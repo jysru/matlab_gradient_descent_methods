@@ -167,12 +167,9 @@ classdef History < handle
                 legend('w/o perturb', 'w/ perturb 1', 'w/ perturb 2')
 
             subplot(1, 2, 2); hold on; grid on; box on;
-                [f, xi] = ksdensity(obj.fvals(:));
-                area(xi, f, FaceAlpha=0.4, LineWidth=1, EdgeColor="none")
-                [f, xi] = ksdensity(obj.fvals1(:));
-                area(xi, f, FaceAlpha=0.4, LineWidth=1, EdgeColor="none")
-                [f, xi] = ksdensity(obj.fvals2(:));
-                area(xi, f, FaceAlpha=0.4,  LineWidth=1, EdgeColor="none")
+                histogram(obj.fvals(:), EdgeAlpha=0, FaceAlpha=0.5)
+                histogram(obj.fvals1(:), EdgeAlpha=0, FaceAlpha=0.3)
+                histogram(obj.fvals2(:), EdgeAlpha=0, FaceAlpha=0.3)
                 xlabel('Cost function value')
                 ylabel('Density')
                 title('Noisy cost function distributions')
