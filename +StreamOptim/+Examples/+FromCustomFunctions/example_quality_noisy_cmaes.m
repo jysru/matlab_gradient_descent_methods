@@ -5,7 +5,7 @@ clf
 import StreamOptim.*
 
 %% Setup problem dimensionality
-n = 10;
+n = 20;
 cost_function_noise_std = 0.005 * 1;
 phit = 2 * pi * rand(1, n);
 phi = 2 * pi * rand(1, n);
@@ -26,11 +26,13 @@ initial_points = angle(initial_points).';
 
 %%
 opts = StreamOptim.Optims.cmaes;
-opts.StopFitness = 1e-4;
+opts.StopFitness = 1e-3;
 opts.LBounds = -pi * ones(n, 1);
 opts.UBounds = +pi * ones(n, 1);
+opts.LogPlot = 'on';
 opts.MaxIter = 20;
 opts.PopSize = 10;
+% opts.StopFunEvals = 200;
 
 %%
 
